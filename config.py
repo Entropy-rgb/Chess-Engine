@@ -4,7 +4,9 @@ from enum import IntEnum
 
 
 class Board:
-    def __init__(self, board, turn, en_passant, castling_rights: list, half_move_clock):
+    def __init__(
+        self, board, turn, en_passant: tuple, castling_rights: list, half_move_clock
+    ):
         self.board = board
         self.turn = turn
         self.en_passant = en_passant
