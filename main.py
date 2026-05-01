@@ -3,7 +3,7 @@ import os
 import pygame as pg
 
 from config import board, piece_map
-from game import move
+from game import move, promote_pawn
 
 pieces = {}
 click_list = []
@@ -56,7 +56,8 @@ while running:
                 click_list = []
                 click_list.append(coordinates)
     if len(click_list) == 2:
-        move(*click_list)
+        move(*click_list, screen)
+        # print(click_list)
         click_list.pop()
         click_list.pop()
     for x in range(0, 8):
@@ -89,7 +90,7 @@ while running:
                             and coordinates[1] > 630
                             and coordinates[1] < 630 + 180
                         ):
-                            board.board[0][x] = -5
+                            promote_pawn((0,x),-5)
                             pawn_promotion = 0
                             break
                         elif (
@@ -98,7 +99,7 @@ while running:
                             and coordinates[1] > 630
                             and coordinates[1] < 630 + 180
                         ):
-                            board.board[0][x] = -4
+                            promote_pawn((0,x),-4)
                             pawn_promotion = 0
                             break
                         elif (
@@ -107,7 +108,7 @@ while running:
                             and coordinates[1] > 630
                             and coordinates[1] < 630 + 180
                         ):
-                            board.board[0][x] = -3
+                            promote_pawn((0,x),-3)
                             pawn_promotion = 0
                             break
                         elif (
@@ -116,7 +117,7 @@ while running:
                             and coordinates[1] > 630
                             and coordinates[1] < 630 + 180
                         ):
-                            board.board[0][x] = -2
+                            promote_pawn((0,x),-2)
                             pawn_promotion = 0
                             break
         elif board.board[7][x] == 1:
@@ -147,8 +148,8 @@ while running:
                             and coordinates[0] < 165 + 180
                             and coordinates[1] > 630
                             and coordinates[1] < 630 + 180
-                        ):
-                            board.board[7][x] = 5
+                        ):    # print(click_list)
+                            promote_pawn((7,x),5)
                             pawn_promotion = 0
                             break
                         elif (
@@ -157,7 +158,7 @@ while running:
                             and coordinates[1] > 630
                             and coordinates[1] < 630 + 180
                         ):
-                            board.board[7][x] = 4
+                            promote_pawn((7,x),4)
                             pawn_promotion = 0
                             break
                         elif (
@@ -166,7 +167,7 @@ while running:
                             and coordinates[1] > 630
                             and coordinates[1] < 630 + 180
                         ):
-                            board.board[7][x] = 3
+                            promote_pawn((7,x),3)
                             pawn_promotion = 0
                             break
                         elif (
@@ -175,10 +176,11 @@ while running:
                             and coordinates[1] > 630
                             and coordinates[1] < 630 + 180
                         ):
-                            board.board[7][x] = 2
+                            promote_pawn((7,x),2)
                             pawn_promotion = 0
                             break
     pg.display.flip()
+    # print(click_list)
     clock.tick(60)
 
 pg.quit()

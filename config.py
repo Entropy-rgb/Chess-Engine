@@ -5,13 +5,24 @@ from enum import IntEnum
 
 class Board:
     def __init__(
-        self, board, turn, en_passant: tuple, castling_rights: list, half_move_clock
+        self,
+        board,
+        turn,
+        en_passant: tuple,
+        castling_rights: list,
+        half_move_clock,
+        rook_moved,
     ):
         self.board = board
         self.turn = turn
         self.en_passant = en_passant
         self.castling_rights = castling_rights
         self.half_move_clock = half_move_clock
+        self.rook_moved = rook_moved
+
+
+# Rook moved : (0,0) (0,7) (7,0) (7,7)
+# CASTLE convention  : [QB] [KB] [QW] [KW]
 
 
 class pieces_enum(IntEnum):
@@ -85,4 +96,4 @@ starting_board = [
     ],
 ]
 
-board = Board(np.array(starting_board), 0, (8, 8), [1, 1, 1, 1], 0)
+board = Board(np.array(starting_board), 0, (8, 8), [1, 1, 1, 1], 0, [0, 0, 0, 0])
