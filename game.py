@@ -25,18 +25,45 @@ possible_directions = [
     (-1, -0),
 ]
 
-def promote_pawn(pos:tuple , piece:int):
+def promote_pawn(pos: tuple, piece: int):
     board.board[*pos] = piece
     return 0
 
+
+def _draw_result_card(screen, title, subtitle):
+    if not pg.font.get_init():
+        pg.font.init()
+
+    overlay = pg.Surface(screen.get_size(), pg.SRCALPHA)
+    overlay.fill((20, 18, 16, 170))
+    screen.blit(overlay, (0, 0))
+
+    card = pg.Rect(300, 460, 840, 360)
+    pg.draw.rect(screen, (244, 238, 226), card, border_radius=8)
+    pg.draw.rect(screen, (76, 48, 25), card, width=6, border_radius=8)
+
+    title_font = pg.font.SysFont("arial", 72, bold=True)
+    subtitle_font = pg.font.SysFont("arial", 34)
+    hint_font = pg.font.SysFont("arial", 28)
+
+    title_surface = title_font.render(title, True, (48, 32, 20))
+    subtitle_surface = subtitle_font.render(subtitle, True, (68, 48, 34))
+    hint_surface = hint_font.render("Press R for menu or Esc to quit", True, (98, 72, 48))
+
+    screen.blit(title_surface, title_surface.get_rect(center=(720, 565)))
+    screen.blit(subtitle_surface, subtitle_surface.get_rect(center=(720, 655)))
+    screen.blit(hint_surface, hint_surface.get_rect(center=(720, 735)))
+
+
 def call_draw(screen):
-    pg.draw.rect(screen,"white",(90, 450, 1260, 540))
-    return 0
+    _draw_result_card(screen, "Draw", "The game ended without a winner.")
+    return "draw"
+
 
 def call_win(winner, screen):
-    pg.draw.rect(screen,"white",(90, 450, 1260, 540))
-    pg.
-    return 0
+    winner_name = "White" if winner == 0 else "Black"
+    _draw_result_card(screen, "Checkmate", f"{winner_name} wins.")
+    return "win"
 
 def square_in_board(square: tuple) -> int:
     if square[0] < 8 and square[0] >= 0 and square[1] < 8 and square[1] >= 0:
