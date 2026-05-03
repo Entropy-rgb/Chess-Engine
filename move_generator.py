@@ -1,5 +1,4 @@
-from config import board, Board, pieces_enum
-import numpy as np
+from config import Board, pieces_enum
 from game import square_in_board
 
 # from game import is_valid_move

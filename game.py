@@ -25,7 +25,8 @@ possible_directions = [
     (-1, -0),
 ]
 
-def promote_pawn(pos: tuple, piece: int):
+
+def promote_pawn(pos: tuple, piece: int, board=board):
     board.board[*pos] = piece
     return 0
 
@@ -48,7 +49,9 @@ def _draw_result_card(screen, title, subtitle):
 
     title_surface = title_font.render(title, True, (48, 32, 20))
     subtitle_surface = subtitle_font.render(subtitle, True, (68, 48, 34))
-    hint_surface = hint_font.render("Press R for menu or Esc to quit", True, (98, 72, 48))
+    hint_surface = hint_font.render(
+        "Press R for menu or Esc to quit", True, (98, 72, 48)
+    )
 
     screen.blit(title_surface, title_surface.get_rect(center=(720, 565)))
     screen.blit(subtitle_surface, subtitle_surface.get_rect(center=(720, 655)))
@@ -65,21 +68,25 @@ def call_win(winner, screen):
     _draw_result_card(screen, "Checkmate", f"{winner_name} wins.")
     return "win"
 
+
 def square_in_board(square: tuple) -> int:
     if square[0] < 8 and square[0] >= 0 and square[1] < 8 and square[1] >= 0:
         return 1
     else:
         return 0
 
-def check_for_checkmate():
-    if in_check() and not has_legal_moves():
+
+def check_for_checkmate(board=board):
+    if in_check(board=board) and not has_legal_moves():
         return board.turn ^ 1
     return None
 
-def stalemate_detect():
-    return not in_check() and not has_legal_moves()
 
-def in_check(initial_position=(8,8), final_position=(8,8), valid=0):
+def stalemate_detect(board=board):
+    return not in_check(board=board) and not has_legal_moves(board=board)
+
+
+def in_check(initial_position=(8, 8), final_position=(8, 8), valid=0, board=board):
     board_copy = board.board.copy()
     if valid:
         if final_position == board.en_passant and (
@@ -89,9 +96,9 @@ def in_check(initial_position=(8,8), final_position=(8,8), valid=0):
                 board_copy[final_position[0] + 1][final_position[1]] = 0
             elif board.turn == 1:
                 board_copy[final_position[0] - 1][final_position[1]] = 0
-        board_copy[final_position[0]][final_position[1]] = board_copy[initial_position[0]][
-            initial_position[1]
-        ]
+        board_copy[final_position[0]][final_position[1]] = board_copy[
+            initial_position[0]
+        ][initial_position[1]]
         board_copy[initial_position[0]][initial_position[1]] = 0
         if valid >= 3:
             if valid == 3:
@@ -122,7 +129,7 @@ def in_check(initial_position=(8,8), final_position=(8,8), valid=0):
     return 0
 
 
-def is_attacked(square: tuple, attacking_side, only_board = board.board) -> int:
+def is_attacked(square: tuple, attacking_side, only_board=board.board) -> int:
     if attacking_side == 0:
         # check for pawn attacks
         if (
@@ -261,9 +268,9 @@ def is_valid_castle(initial, final, board=board):
             and board.castling_rights[0] == 1
             and board.rook_moved[0] == 0
             and board.board[0, 1] | board.board[0, 2] | board.board[0, 3] == 0
-            and not is_attacked((0,2), board.turn^1)
-            and not is_attacked((0,3), board.turn^1)
-            and not is_attacked((0,4), board.turn^1)
+            and not is_attacked((0, 2), board.turn ^ 1, board)
+            and not is_attacked((0, 3), board.turn ^ 1, board)
+            and not is_attacked((0, 4), board.turn ^ 1, board)
         ):
             return 3
         if (
@@ -272,9 +279,9 @@ def is_valid_castle(initial, final, board=board):
             and board.castling_rights[1] == 1
             and board.rook_moved[1] == 0
             and board.board[0, 5] | board.board[0, 6] == 0
-            and not is_attacked((0,5), board.turn^1)
-            and not is_attacked((0,6), board.turn^1)
-            and not is_attacked((0,4), board.turn^1)
+            and not is_attacked((0, 5), board.turn ^ 1, board)
+            and not is_attacked((0, 6), board.turn ^ 1, board)
+            and not is_attacked((0, 4), board.turn ^ 1, board)
         ):
             return 4
     elif board.turn == 0:
@@ -284,9 +291,9 @@ def is_valid_castle(initial, final, board=board):
             and board.castling_rights[2] == 1
             and board.rook_moved[2] == 0
             and board.board[7, 1] | board.board[7, 2] | board.board[7, 3] == 0
-            and not is_attacked((7,2), board.turn^1)
-            and not is_attacked((7,3), board.turn^1)
-            and not is_attacked((7,4), board.turn^1)
+            and not is_attacked((7, 2), board.turn ^ 1, board)
+            and not is_attacked((7, 3), board.turn ^ 1, board)
+            and not is_attacked((7, 4), board.turn ^ 1, board)
         ):
             return 5
         if (
@@ -295,18 +302,18 @@ def is_valid_castle(initial, final, board=board):
             and board.castling_rights[3] == 1
             and board.rook_moved[3] == 0
             and board.board[7, 5] | board.board[7, 6] == 0
-            and not is_attacked((7,5), board.turn^1)
-            and not is_attacked((7,6), board.turn^1)
-            and not is_attacked((7,4), board.turn^1)
+            and not is_attacked((7, 5), board.turn ^ 1, board)
+            and not is_attacked((7, 6), board.turn ^ 1, board)
+            and not is_attacked((7, 4), board.turn ^ 1, board)
         ):
             return 6
     return 0
 
 
-def is_king_move(initial, final):
+def is_king_move(initial, final, board=board):
     if abs(final[1] - initial[1]) <= 1 and abs(final[0] - initial[0]) <= 1:
         return 1
-    return is_valid_castle(initial, final)
+    return is_valid_castle(initial, final, board=board)
 
 
 def is_bishop_move(initial, final, board=board):
@@ -343,7 +350,7 @@ def is_rook_move(initial, final, board=board):
 
 
 def is_queen_move(initial, final, board=board):
-    if is_bishop_move(initial, final) or is_rook_move(initial, final):
+    if is_bishop_move(initial, final, board) or is_rook_move(initial, final, board):
         return 1
     else:
         return 0
@@ -377,7 +384,7 @@ def is_white_pawn_move(initial, final, board=board):
         and board.board[*final] != 0
     ):
         return 1
-    elif en_passant(initial, final):
+    elif en_passant(initial, final, board):
         return 1
     else:
         return 0
@@ -404,7 +411,7 @@ def is_black_pawn_move(initial, final, board=board):
         and board.board[*final] != 0
     ):
         return 1
-    elif en_passant(initial, final):
+    elif en_passant(initial, final, board):
         return 1
     else:
         return 0
@@ -414,9 +421,9 @@ def is_valid_move(initial, final, board=board):
     if board.board[*final] * board.board[*initial] > 0:
         return 0
     if board.board[*initial] == pieces_enum.WHITE_PAWN:
-        return is_white_pawn_move(initial, final)
+        return is_white_pawn_move(initial, final, board)
     elif board.board[*initial] == pieces_enum.BLACK_PAWN:
-        return is_black_pawn_move(initial, final)
+        return is_black_pawn_move(initial, final, board)
     elif (
         board.board[*initial] == pieces_enum.BLACK_KNIGHT
         or board.board[*initial] == pieces_enum.WHITE_KNIGHT
@@ -426,22 +433,22 @@ def is_valid_move(initial, final, board=board):
         board.board[*initial] == pieces_enum.BLACK_BISHOP
         or board.board[*initial] == pieces_enum.WHITE_BISHOP
     ):
-        return is_bishop_move(initial, final)
+        return is_bishop_move(initial, final, board)
     elif (
         board.board[*initial] == pieces_enum.BLACK_ROOK
         or board.board[*initial] == pieces_enum.WHITE_ROOK
     ):
-        return is_rook_move(initial, final)
+        return is_rook_move(initial, final, board)
     elif (
         board.board[*initial] == pieces_enum.BLACK_QUEEN
         or board.board[*initial] == pieces_enum.WHITE_QUEEN
     ):
-        return is_queen_move(initial, final)
+        return is_queen_move(initial, final, board)
     elif (
         board.board[*initial] == pieces_enum.BLACK_KING
         or board.board[*initial] == pieces_enum.WHITE_KING
     ):
-        return is_king_move(initial, final)
+        return is_king_move(initial, final, board)
     else:
         return 0
 
@@ -463,7 +470,7 @@ def has_legal_moves(board=board):
                     final = (final_row, final_col)
                     if initial == final:
                         continue
-                    valid = is_valid_move(initial, final)
+                    valid = is_valid_move(initial, final, board)
                     if (
                         valid
                         and not in_check(initial, final, valid)
@@ -476,8 +483,8 @@ def has_legal_moves(board=board):
 def move(initial_position, final_position, screen, board=board):
     checkmate = check_for_checkmate()
     if checkmate is not None:
-        return call_win(checkmate,screen)
-    if board.half_move_clock == 50 or stalemate_detect():
+        return call_win(checkmate, screen)
+    if board.half_move_clock == 50 or stalemate_detect(board=board):
         return call_draw(screen)
     if initial_position == final_position:
         return None
@@ -487,7 +494,10 @@ def move(initial_position, final_position, screen, board=board):
         return None
     valid = is_valid_move(initial_position, final_position, board)
     if valid:
-        if in_check(initial_position, final_position, valid) or abs(board.board[*final_position])==6:
+        if (
+            in_check(initial_position, final_position, valid, board)
+            or abs(board.board[*final_position]) == 6
+        ):
             return None
         if valid == 7:  # a rook move , so we need to modify the castling rights
             if initial_position == (0, 0) and board.rook_moved[0] == 0:
@@ -545,7 +555,7 @@ def move(initial_position, final_position, screen, board=board):
             elif valid == 6:
                 board.board[7][7] = 0
                 board.board[7][5] = -4
-        board.half_move_clock+=1
+        board.half_move_clock += 1
         return 1
     else:
         return None

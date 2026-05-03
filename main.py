@@ -74,7 +74,9 @@ def draw_start_screen(screen, pieces, mouse_pos):
     for row in range(8):
         for col in range(8):
             color = (64, 48, 35) if (row + col) % 2 == 0 else (40, 31, 25)
-            pg.draw.rect(screen, color, (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+            pg.draw.rect(
+                screen, color, (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            )
 
     overlay = pg.Surface((SCREEN_SIZE, SCREEN_SIZE), pg.SRCALPHA)
     overlay.fill((20, 16, 12, 120))
@@ -114,12 +116,19 @@ def draw_board(screen, pieces, selected_square=None):
     for row in range(8):
         for col in range(8):
             color = LIGHT_SQUARE if (row + col) % 2 == 0 else DARK_SQUARE
-            pg.draw.rect(screen, color, (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+            pg.draw.rect(
+                screen, color, (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            )
             if selected_square == (row, col):
                 pg.draw.rect(
                     screen,
                     (250, 236, 92),
-                    (col * TILE_SIZE + 6, row * TILE_SIZE + 6, TILE_SIZE - 12, TILE_SIZE - 12),
+                    (
+                        col * TILE_SIZE + 6,
+                        row * TILE_SIZE + 6,
+                        TILE_SIZE - 12,
+                        TILE_SIZE - 12,
+                    ),
                     width=6,
                     border_radius=4,
                 )

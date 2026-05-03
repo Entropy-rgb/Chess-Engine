@@ -3,6 +3,8 @@ import numpy as np
 from enum import IntEnum
 
 DEPTH = 6
+
+
 class Board:
     def __init__(
         self,
@@ -43,7 +45,8 @@ class pieces_enum(IntEnum):
 
 piece_map = {}
 for x in pieces_enum:
-    if x == 0: continue
+    if x == 0:
+        continue
     a, b = x.name.split("_")
     s = "w"
     if "B" in a:
