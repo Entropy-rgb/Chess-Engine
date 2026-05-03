@@ -268,9 +268,9 @@ def is_valid_castle(initial, final, board=board):
             and board.castling_rights[0] == 1
             and board.rook_moved[0] == 0
             and board.board[0, 1] | board.board[0, 2] | board.board[0, 3] == 0
-            and not is_attacked((0, 2), board.turn ^ 1, board)
-            and not is_attacked((0, 3), board.turn ^ 1, board)
-            and not is_attacked((0, 4), board.turn ^ 1, board)
+            and not is_attacked((0, 2), board.turn ^ 1, board.board)
+            and not is_attacked((0, 3), board.turn ^ 1, board.board)
+            and not is_attacked((0, 4), board.turn ^ 1, board.board)
         ):
             return 3
         if (
@@ -279,9 +279,9 @@ def is_valid_castle(initial, final, board=board):
             and board.castling_rights[1] == 1
             and board.rook_moved[1] == 0
             and board.board[0, 5] | board.board[0, 6] == 0
-            and not is_attacked((0, 5), board.turn ^ 1, board)
-            and not is_attacked((0, 6), board.turn ^ 1, board)
-            and not is_attacked((0, 4), board.turn ^ 1, board)
+            and not is_attacked((0, 5), board.turn ^ 1, board.board)
+            and not is_attacked((0, 6), board.turn ^ 1, board.board)
+            and not is_attacked((0, 4), board.turn ^ 1, board.board)
         ):
             return 4
     elif board.turn == 0:
@@ -291,9 +291,9 @@ def is_valid_castle(initial, final, board=board):
             and board.castling_rights[2] == 1
             and board.rook_moved[2] == 0
             and board.board[7, 1] | board.board[7, 2] | board.board[7, 3] == 0
-            and not is_attacked((7, 2), board.turn ^ 1, board)
-            and not is_attacked((7, 3), board.turn ^ 1, board)
-            and not is_attacked((7, 4), board.turn ^ 1, board)
+            and not is_attacked((7, 2), board.turn ^ 1, board.board)
+            and not is_attacked((7, 3), board.turn ^ 1, board.board)
+            and not is_attacked((7, 4), board.turn ^ 1, board.board)
         ):
             return 5
         if (
@@ -302,9 +302,9 @@ def is_valid_castle(initial, final, board=board):
             and board.castling_rights[3] == 1
             and board.rook_moved[3] == 0
             and board.board[7, 5] | board.board[7, 6] == 0
-            and not is_attacked((7, 5), board.turn ^ 1, board)
-            and not is_attacked((7, 6), board.turn ^ 1, board)
-            and not is_attacked((7, 4), board.turn ^ 1, board)
+            and not is_attacked((7, 5), board.turn ^ 1, board.board)
+            and not is_attacked((7, 6), board.turn ^ 1, board.board)
+            and not is_attacked((7, 4), board.turn ^ 1, board.board)
         ):
             return 6
     return 0
