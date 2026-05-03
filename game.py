@@ -232,7 +232,7 @@ def is_attacked(square: tuple, attacking_side, only_board = board.board) -> int:
     return 0
 
 
-def en_passant(initial, final):
+def en_passant(initial, final, board=board):
     if board.en_passant == (8, 8):
         return 0
     else:
@@ -253,7 +253,7 @@ def en_passant(initial, final):
     return 0
 
 
-def is_valid_castle(initial, final):
+def is_valid_castle(initial, final, board=board):
     if board.turn == 1:
         if (
             final == (0, 2)
@@ -309,7 +309,7 @@ def is_king_move(initial, final):
     return is_valid_castle(initial, final)
 
 
-def is_bishop_move(initial, final):
+def is_bishop_move(initial, final, board=board):
     if abs(final[1] - initial[1]) == abs(final[0] - initial[0]):
         a, b = 1, 1
         if final[1] - initial[1] < 0:
@@ -324,7 +324,7 @@ def is_bishop_move(initial, final):
         return 0
 
 
-def is_rook_move(initial, final):
+def is_rook_move(initial, final, board=board):
     if final[1] - initial[1] == 0 or final[0] - initial[0] == 0:
         a, b = 1, 1
         if final[1] - initial[1] == 0:
@@ -342,7 +342,7 @@ def is_rook_move(initial, final):
     return 0
 
 
-def is_queen_move(initial, final):
+def is_queen_move(initial, final, board=board):
     if is_bishop_move(initial, final) or is_rook_move(initial, final):
         return 1
     else:
@@ -356,7 +356,7 @@ def is_knight_move(initial, final):
     return 0
 
 
-def is_white_pawn_move(initial, final):
+def is_white_pawn_move(initial, final, board=board):
     if (
         initial[0] == 6
         and final[0] == 4
@@ -383,7 +383,7 @@ def is_white_pawn_move(initial, final):
         return 0
 
 
-def is_black_pawn_move(initial, final):
+def is_black_pawn_move(initial, final, board=board):
     if (
         initial[0] == 1
         and final[0] == 3
@@ -410,7 +410,7 @@ def is_black_pawn_move(initial, final):
         return 0
 
 
-def is_valid_move(initial, final):
+def is_valid_move(initial, final, board=board):
     if board.board[*final] * board.board[*initial] > 0:
         return 0
     if board.board[*initial] == pieces_enum.WHITE_PAWN:
@@ -446,7 +446,7 @@ def is_valid_move(initial, final):
         return 0
 
 
-def has_legal_moves():
+def has_legal_moves(board=board):
     for initial_row in range(8):
         for initial_col in range(8):
             piece = board.board[initial_row][initial_col]
@@ -473,7 +473,7 @@ def has_legal_moves():
     return False
 
 
-def move(initial_position, final_position, screen):
+def move(initial_position, final_position, screen, board=board):
     checkmate = check_for_checkmate()
     if checkmate is not None:
         return call_win(checkmate,screen)
@@ -485,7 +485,7 @@ def move(initial_position, final_position, screen):
         return None
     elif board.board[*initial_position] > 0 and board.turn == 0:
         return None
-    valid = is_valid_move(initial_position, final_position)
+    valid = is_valid_move(initial_position, final_position, board)
     if valid:
         if in_check(initial_position, final_position, valid) or abs(board.board[*final_position])==6:
             return None
