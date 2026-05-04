@@ -7,6 +7,7 @@ from game import square_in_board, in_check
 
 # from game import is_valid_move
 
+
 class move:
     def __init__(
         self: Self,
@@ -15,7 +16,7 @@ class move:
         piece: int | np.int64,
         flag: int | np.int64,
         capture: int | np.int64,
-        weight:int = 0
+        weight: int = 0,
     ):
         self.initial = initial
         self.final = final
@@ -300,13 +301,24 @@ def get_pawn_moves(
                 )
     return playable_moves
 
+
 def perform_move_ordering(valid_moves, board):
     for cur_move in valid_moves:
-        if in_check(cur_move.initial, cur_move.final , 0, board):
-            cur_move.weight+=100
-        if cur_move.flag == 1 or cur_move.flag == 12 or cur_move.flag == 14 or cur_move.flag == 16 or cur_move.flag == 18:
-            cur_move.weight+=50
-    sorted(valid_moves, key=lambda x: x.weight, reverse=True)
+        if cur_move.flag and in_check(
+            cur_move.initial, cur_move.final, cur_move.flag, board
+        ):
+            cur_move.weight += 100
+        if (
+            cur_move.flag == 1
+            or cur_move.flag == 12
+            or cur_move.flag == 14
+            or cur_move.flag == 16
+            or cur_move.flag == 18
+        ):
+            cur_move.weight += 50
+    valid_moves.sort(key=lambda x: x.weight, reverse=True)
+    return valid_moves
+
 
 def move_generator(board: Board, turn: int | np.int64 = -1) -> list:
     if turn == -1:

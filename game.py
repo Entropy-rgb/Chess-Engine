@@ -89,6 +89,7 @@ def stalemate_detect(inp_board=board) -> int | np.int64:
         inp_board=inp_board
     )
 
+
 def in_check(
     initial_position: tuple = (8, 8),
     final_position: tuple = (8, 8),
@@ -283,8 +284,9 @@ def is_valid_castle(
             and inp_board.board[0][0] == 4
             and inp_board.castling_rights[0] == 1
             and inp_board.rook_moved[0] == 0
-            and inp_board.board[0, 1] | inp_board.board[0, 2] | inp_board.board[0, 3]
-            == 0
+            and inp_board.board[0, 1] == 0
+            and inp_board.board[0, 2] == 0
+            and inp_board.board[0, 3] == 0
             and not is_attacked((0, 2), inp_board.turn ^ 1, inp_board.board)
             and not is_attacked((0, 3), inp_board.turn ^ 1, inp_board.board)
             and not is_attacked((0, 4), inp_board.turn ^ 1, inp_board.board)
@@ -295,7 +297,8 @@ def is_valid_castle(
             and inp_board.board[0][7] == 4
             and inp_board.castling_rights[1] == 1
             and inp_board.rook_moved[1] == 0
-            and inp_board.board[0, 5] | inp_board.board[0, 6] == 0
+            and inp_board.board[0, 5] == 0
+            and inp_board.board[0, 6] == 0
             and not is_attacked((0, 5), inp_board.turn ^ 1, inp_board.board)
             and not is_attacked((0, 6), inp_board.turn ^ 1, inp_board.board)
             and not is_attacked((0, 4), inp_board.turn ^ 1, inp_board.board)
@@ -307,8 +310,9 @@ def is_valid_castle(
             and inp_board.board[7][0] == -4
             and inp_board.castling_rights[2] == 1
             and inp_board.rook_moved[2] == 0
-            and inp_board.board[7, 1] | inp_board.board[7, 2] | inp_board.board[7, 3]
-            == 0
+            and inp_board.board[7, 1] == 0
+            and inp_board.board[7, 2] == 0
+            and inp_board.board[7, 3] == 0
             and not is_attacked((7, 2), inp_board.turn ^ 1, inp_board.board)
             and not is_attacked((7, 3), inp_board.turn ^ 1, inp_board.board)
             and not is_attacked((7, 4), inp_board.turn ^ 1, inp_board.board)
@@ -319,7 +323,8 @@ def is_valid_castle(
             and inp_board.board[7][7] == -4
             and inp_board.castling_rights[3] == 1
             and inp_board.rook_moved[3] == 0
-            and inp_board.board[7, 5] | inp_board.board[7, 6] == 0
+            and inp_board.board[7, 5] == 0
+            and inp_board.board[7, 6] == 0
             and not is_attacked((7, 5), inp_board.turn ^ 1, inp_board.board)
             and not is_attacked((7, 6), inp_board.turn ^ 1, inp_board.board)
             and not is_attacked((7, 4), inp_board.turn ^ 1, inp_board.board)
@@ -590,8 +595,9 @@ def move(
                 inp_board.board[final_position[0] + 1][final_position[1]] = 0
             elif inp_board.turn == 1:
                 inp_board.board[final_position[0] - 1][final_position[1]] = 0
+        # Snapshot capture BEFORE the board is mutated so the check is correct
+        was_capture = inp_board.board[final_position[0]][final_position[1]] != 0
         inp_board.turn = inp_board.turn ^ 1
-        if inp_board.board[final_position[0]][final_position[1]] != 0: inp_board.half_move_clock = 0
         inp_board.board[final_position[0]][final_position[1]] = inp_board.board[
             initial_position[0]
         ][initial_position[1]]
@@ -624,7 +630,12 @@ def move(
             elif valid == 6:
                 inp_board.board[7][7] = 0
                 inp_board.board[7][5] = -4
-        inp_board.half_move_clock += 1
+        # Pawn moves (valid 2, 10) and captures already reset clock above;
+        # increment only for quiet non-pawn moves.
+        if was_capture:
+            inp_board.half_move_clock = 0
+        elif valid not in (2, 10):  # not a pawn move
+            inp_board.half_move_clock += 1
         return 1
     else:
         return None

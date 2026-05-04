@@ -2,7 +2,7 @@ import os
 from tqdm import tqdm
 import numpy as np
 import pygame as pg
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, Future
 
 from config import board, piece_map, starting_board
 from engine import make_engine_move
@@ -152,6 +152,7 @@ def board_square_from_mouse(pos):
         return (row, col)
     return None
 
+
 def is_current_turn_piece(piece):
     if board.turn == 0:
         return piece < 0
@@ -176,6 +177,7 @@ def is_ai_turn(mode):
     if mode == "avp":
         return board.turn == 0
     return False
+
 
 def choose_square(click_list, square):
     if square is None:
@@ -275,6 +277,7 @@ def draw_game_result(screen, result):
     elif result_type == "draw":
         call_draw(screen)
 
+
 def finish_human_turn(screen, pieces, clock, click_list):
     if len(click_list) != 2:
         return None, True
@@ -292,9 +295,33 @@ def finish_human_turn(screen, pieces, clock, click_list):
 
 
 def finish_ai_turn():
-    # pg.display.flip()
     make_engine_move(depth=4)
     return current_game_result()
+
+
+def draw_thinking_overlay(screen: pg.Surface) -> None:
+    """Draw a non-blocking pulsing overlay while the AI is searching."""
+    elapsed = pg.time.get_ticks()
+    # Pulse alpha between 150 and 210 using a sine-like triangle wave
+    cycle = (elapsed % 900) / 900.0  # 0.0 → 1.0 every 900 ms
+    alpha = int(150 + 60 * (1 - abs(cycle * 2 - 1)))
+
+    overlay = pg.Surface((SCREEN_SIZE, SCREEN_SIZE), pg.SRCALPHA)
+    overlay.fill((10, 10, 10, alpha // 3))  # subtle dark tint
+    screen.blit(overlay, (0, 0))
+
+    # Pill-shaped background for the text
+    pill = pg.Rect(0, 0, 460, 74)
+    pill.center = (SCREEN_SIZE // 2, SCREEN_SIZE // 2)
+    pg.draw.rect(screen, (30, 22, 16, 220), pill, border_radius=37)
+    pg.draw.rect(screen, (126, 84, 45), pill, width=3, border_radius=37)
+
+    # Animated dots:  "AI Thinking" / "AI Thinking." / "AI Thinking.."
+    dots = "." * ((elapsed // 400) % 4)
+    font = pg.font.SysFont("arial", 38, bold=True)
+    text = font.render(f"AI Thinking{dots}", True, (250, 241, 223))
+    screen.blit(text, text.get_rect(center=pill.center))
+
 
 def main():
     pg.init()
@@ -307,6 +334,10 @@ def main():
     game_mode = None
     game_result = None
     click_list = []
+
+    # Persistent executor + future for non-blocking AI search
+    executor = ThreadPoolExecutor(max_workers=1)
+    ai_future: Future | None = None
 
     while running:
         mouse_pos = pg.mouse.get_pos()
@@ -324,6 +355,7 @@ def main():
                             reset_game()
                             click_list.clear()
                             game_result = None
+                            ai_future = None
                             game_mode = mode
                             state = "game"
 
@@ -331,12 +363,9 @@ def main():
             clock.tick(FPS)
             continue
 
-        update_caption(game_mode)
-        draw_board(screen, pieces, click_list[0] if click_list else None)
-
-        if game_result is not None:
-            draw_game_result(screen, game_result)
-        ai_moved = False
+        # ------------------------------------------------------------------
+        # Event handling (always responsive, even while AI is thinking)
+        # ------------------------------------------------------------------
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
@@ -347,28 +376,57 @@ def main():
                     state = "menu"
                     game_mode = None
                     game_result = None
+                    ai_future = None
                     click_list.clear()
             elif (
                 event.type == pg.MOUSEBUTTONDOWN
                 and event.button == 1
                 and game_result is None
+                and ai_future is None  # ignore clicks while AI thinks
             ):
                 choose_square(click_list, board_square_from_mouse(event.pos))
+
+        # ------------------------------------------------------------------
+        # Draw the board (always, every frame)
+        # ------------------------------------------------------------------
+        update_caption(game_mode)
+        draw_board(screen, pieces, click_list[0] if click_list else None)
+
+        if game_result is not None:
+            draw_game_result(screen, game_result)
+
+        # ------------------------------------------------------------------
+        # AI turn — non-blocking
+        # ------------------------------------------------------------------
+        ai_moved = False
         if game_result is None and is_ai_turn(game_mode):
-            pg.display.flip()
-            with ThreadPoolExecutor() as ppe:
-                result = ppe.submit(finish_ai_turn)
-                game_result = result.result()
-            ai_moved = True
+            if ai_future is None:
+                # First time we hit the AI's turn: kick off background search
+                ai_future = executor.submit(finish_ai_turn)
+
+            if ai_future.done():
+                # Engine finished — collect result and clear the future
+                game_result = ai_future.result()
+                ai_future = None
+                ai_moved = True
+            else:
+                # Still thinking — draw animated overlay so the user knows
+                draw_thinking_overlay(screen)
+
+        # ------------------------------------------------------------------
+        # Human turn
+        # ------------------------------------------------------------------
         elif game_result is None and is_human_turn(game_mode):
             result, running = finish_human_turn(screen, pieces, clock, click_list)
             if result is not None:
                 game_result = result
+
         pg.display.flip()
         if ai_moved and game_mode == "ava" and game_result is None:
             pg.time.delay(500)
         clock.tick(FPS)
 
+    executor.shutdown(wait=False)
     pg.quit()
 
 
