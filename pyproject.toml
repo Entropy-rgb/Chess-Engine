@@ -10,4 +10,5 @@ dependencies = [
     "pygame-ce>=2.5.7",
     "rich>=15.0.0",
     "setuptools>=82.0.1",
+    "tqdm>=4.67.3",
 ]

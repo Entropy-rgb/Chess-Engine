@@ -1,7 +1,6 @@
 # Chess-Engine
 Making a chess engine using python
 
-
 <!-- 
 Phase 1: Chess game logic        done ✅
 Phase 2: Minimax + alpha-beta       ← you're here, 

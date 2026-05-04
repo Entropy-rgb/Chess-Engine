@@ -4,7 +4,7 @@ from config import Board, board
 from game import move
 from move_generator import move_generator
 
-DEPTH = 4
+DEPTH = 3
 count = 0
 capture = 0
 en_passant = 0

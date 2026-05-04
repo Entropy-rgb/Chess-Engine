@@ -1,7 +1,9 @@
 from typing import Any
-from config import pieces_enum
+
 import numpy as np
 from numpy import dtype, generic, ndarray
+
+from config import pieces_enum
 
 pawn_mid_white_PST = np.array(
     [
@@ -856,12 +858,12 @@ position_tables_mid = [
     knight_mid_white_PST,
     pawn_mid_white_PST,
     np.array([]),
-    np.flip(pawn_mid_white_PST,(0,1)),
-    np.flip(knight_mid_white_PST,(0,1)),
-    np.flip(bishop_mid_white_PST,(0,1)),
-    np.flip(rook_mid_white_PST,(0,1)),
-    np.flip(queen_mid_white_PST,(0,1)),
-    np.flip(king_mid_white_PST,(0,1)),
+    np.flip(pawn_mid_white_PST, (0)),
+    np.flip(knight_mid_white_PST, (0)),
+    np.flip(bishop_mid_white_PST, (0)),
+    np.flip(rook_mid_white_PST, (0)),
+    np.flip(queen_mid_white_PST, (0)),
+    np.flip(king_mid_white_PST, (0)),
 ]
 
 position_tables_end = [
@@ -872,15 +874,18 @@ position_tables_end = [
     knight_end_white_PST,
     pawn_end_white_PST,
     np.array([]),
-    np.flip(pawn_end_white_PST,(0,1)),
-    np.flip(knight_end_white_PST,(0,1)),
-    np.flip(bishop_end_white_PST,(0,1)),
-    np.flip(rook_end_white_PST,(0,1)),
-    np.flip(queen_end_white_PST,(0,1)),
-    np.flip(king_end_white_PST,(0,1)),
+    np.flip(pawn_end_white_PST, (0)),
+    np.flip(knight_end_white_PST, (0)),
+    np.flip(bishop_end_white_PST, (0)),
+    np.flip(rook_end_white_PST, (0)),
+    np.flip(queen_end_white_PST, (0)),
+    np.flip(king_end_white_PST, (0)),
 ]
 
-def find_pst(piece:pieces_enum, end:int=0)-> ndarray[tuple[int, int], dtype[generic[Any]]] | None:
+
+def find_pst(
+    piece: pieces_enum, end: int = 0
+) -> ndarray[tuple[int, int], dtype[generic[Any]]] | None:
     if end == 1:
         return position_tables_end[piece + 6]
     elif end == 0:

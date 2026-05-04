@@ -79,7 +79,7 @@ def square_in_board(square: tuple) -> int | np.int64:
 
 
 def check_for_checkmate(inp_board=board) -> None | int | np.int64:
-    if in_check(inp_board=inp_board) and not has_legal_moves():
+    if in_check(inp_board=inp_board) and not has_legal_moves(inp_board):
         return inp_board.turn ^ 1
     return None
 
@@ -88,7 +88,6 @@ def stalemate_detect(inp_board=board) -> int | np.int64:
     return not in_check(inp_board=inp_board) and not has_legal_moves(
         inp_board=inp_board
     )
-
 
 def in_check(
     initial_position: tuple = (8, 8),
@@ -414,15 +413,15 @@ def is_white_pawn_move(
         and final[0] - initial[0] == -1
         and inp_board.board[*final] == 0
     ):
-        return 1
+        return 10
     elif (
         abs(final[1] - initial[1]) == 1
         and final[0] - initial[0] == -1
         and inp_board.board[*final] != 0
     ):
-        return 1
+        return 10
     elif en_passant(initial, final, inp_board):
-        return 1
+        return 10
     else:
         return 0
 
@@ -443,15 +442,15 @@ def is_black_pawn_move(
         and final[0] - initial[0] == 1
         and inp_board.board[*final] == 0
     ):
-        return 1
+        return 10
     elif (
         abs(final[1] - initial[1]) == 1
         and final[0] - initial[0] == 1
         and inp_board.board[*final] != 0
     ):
-        return 1
+        return 10
     elif en_passant(initial, final, inp_board):
-        return 1
+        return 10
     else:
         return 0
 
@@ -514,7 +513,7 @@ def has_legal_moves(inp_board: Board = board) -> bool:
                     valid = is_valid_move(initial, final, inp_board)
                     if (
                         valid
-                        and not in_check(initial, final, valid)
+                        and not in_check(initial, final, valid, inp_board)
                         and abs(inp_board.board[final_row][final_col]) != 6
                     ):
                         return True
@@ -522,12 +521,20 @@ def has_legal_moves(inp_board: Board = board) -> bool:
 
 
 def move(
-    initial_position: tuple, final_position: tuple, screen, inp_board: Board = board
+    initial_position: tuple,
+    final_position: tuple,
+    screen,
+    inp_board: Board = board,
+    promotion_piece: int | np.int64 | None = None,
 ) -> None | int | np.int64 | str:
-    checkmate = check_for_checkmate()
+    checkmate = check_for_checkmate(inp_board)
     if checkmate is not None:
+        if screen is None:
+            return "win"
         return call_win(checkmate, screen)
     if inp_board.half_move_clock == 50 or stalemate_detect(inp_board=inp_board):
+        if screen is None:
+            return "draw"
         return call_draw(screen)
     if initial_position == final_position:
         return None
@@ -542,6 +549,7 @@ def move(
             or abs(inp_board.board[*final_position]) == 6
         ):
             return None
+        moving_piece = inp_board.board[*initial_position]
         if valid == 7:  # a rook move , so we need to modify the castling rights
             if initial_position == (0, 0) and inp_board.rook_moved[0] == 0:
                 inp_board.rook_moved[0] = 1
@@ -556,14 +564,15 @@ def move(
                 inp_board.rook_moved[3] = 1
                 inp_board.castling_rights[3] = 0
         if valid == 2:
+            inp_board.half_move_clock = 0
             if inp_board.turn == 1:
                 inp_board.en_passant = (2, initial_position[1])
             elif inp_board.turn == 0:
                 inp_board.en_passant = (5, initial_position[1])
-        if (
-            inp_board.board[*initial_position] == 6
-            or inp_board.board[*initial_position] == -6
-        ):
+        if valid == 10:
+            inp_board.half_move_clock = 0
+
+        if moving_piece == 6 or moving_piece == -6:
             if inp_board.turn == 1 and (
                 inp_board.castling_rights[0] or inp_board.castling_rights[1]
             ):
@@ -575,21 +584,34 @@ def move(
                 inp_board.castling_rights[2] = 0
                 inp_board.castling_rights[3] = 0
         if final_position == inp_board.en_passant and (
-            inp_board.board[*initial_position] == 1
-            or inp_board.board[*initial_position] == -1
+            moving_piece == 1 or moving_piece == -1
         ):
             if inp_board.turn == 0:
                 inp_board.board[final_position[0] + 1][final_position[1]] = 0
             elif inp_board.turn == 1:
                 inp_board.board[final_position[0] - 1][final_position[1]] = 0
         inp_board.turn = inp_board.turn ^ 1
+        if inp_board.board[final_position[0]][final_position[1]] != 0: inp_board.half_move_clock = 0
         inp_board.board[final_position[0]][final_position[1]] = inp_board.board[
             initial_position[0]
         ][initial_position[1]]
         inp_board.board[initial_position[0]][initial_position[1]] = 0
         if valid != 2 and inp_board.en_passant != (8, 8):
             inp_board.en_passant = (8, 8)
-        if valid >= 3:
+        if promotion_piece is not None and (
+            (
+                moving_piece == pieces_enum.WHITE_PAWN
+                and final_position[0] == 0
+                and promotion_piece < 0
+            )
+            or (
+                moving_piece == pieces_enum.BLACK_PAWN
+                and final_position[0] == 7
+                and promotion_piece > 0
+            )
+        ):
+            inp_board.board[final_position[0]][final_position[1]] = promotion_piece
+        if valid in (3, 4, 5, 6):
             if valid == 3:
                 inp_board.board[0][0] = 0
                 inp_board.board[0][3] = 4

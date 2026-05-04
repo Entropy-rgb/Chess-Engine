@@ -3,10 +3,9 @@ from typing import Self
 import numpy as np
 
 from config import Board, pieces_enum
-from game import square_in_board
+from game import square_in_board, in_check
 
 # from game import is_valid_move
-
 
 class move:
     def __init__(
@@ -16,12 +15,14 @@ class move:
         piece: int | np.int64,
         flag: int | np.int64,
         capture: int | np.int64,
+        weight:int = 0
     ):
         self.initial = initial
         self.final = final
         self.piece = piece
         self.flag = flag  # flags : 0 for None ; 1 for capture ; 2 for double push ; 3 for en_passant ; 4 for castling ; 11 for queen promotion , 13 for rook , 15 for bishop , 17 for knight, +1 in each for capture
         self.capture = capture
+        self.weight = weight
 
 
 def get_knight_moves(
@@ -299,6 +300,13 @@ def get_pawn_moves(
                 )
     return playable_moves
 
+def perform_move_ordering(valid_moves, board):
+    for cur_move in valid_moves:
+        if in_check(cur_move.initial, cur_move.final , 0, board):
+            cur_move.weight+=100
+        if cur_move.flag == 1 or cur_move.flag == 12 or cur_move.flag == 14 or cur_move.flag == 16 or cur_move.flag == 18:
+            cur_move.weight+=50
+    sorted(valid_moves, key=lambda x: x.weight, reverse=True)
 
 def move_generator(board: Board, turn: int | np.int64 = -1) -> list:
     if turn == -1:
@@ -383,4 +391,5 @@ def move_generator(board: Board, turn: int | np.int64 = -1) -> list:
                 # for king
                 if i == pieces_enum.BLACK_KING:
                     valid_moves += get_king_moves(copy_board, (x, y))
+    perform_move_ordering(valid_moves, board)
     return valid_moves

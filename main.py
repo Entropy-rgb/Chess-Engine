@@ -1,12 +1,19 @@
 import os
-
+from tqdm import tqdm
 import numpy as np
 import pygame as pg
+from concurrent.futures import ThreadPoolExecutor
 
 from config import board, piece_map, starting_board
 from engine import make_engine_move
-from game import (call_draw, call_win, check_for_checkmate, move, promote_pawn,
-                  stalemate_detect)
+from game import (
+    call_draw,
+    call_win,
+    check_for_checkmate,
+    move,
+    promote_pawn,
+    stalemate_detect,
+)
 
 SCREEN_SIZE = 1440
 TILE_SIZE = 180
@@ -91,14 +98,14 @@ def draw_start_screen(screen, pieces, mouse_pos):
 
     buttons = []
     for index, (mode, title, subtitle) in enumerate(MODES):
-        rect = pg.Rect(430, 500 + index * 145, 580, 105)
+        rect = pg.Rect(430, 470 + index * 145, 580, 100)
         draw_button(screen, rect, title, subtitle, rect.collidepoint(mouse_pos))
         buttons.append((rect, mode))
 
     hint_font = pg.font.SysFont("arial", 26)
     draw_centered_text(
         screen,
-        "AI options open the board now; engine moves come in Phase 2.",
+        "Press R after a result to return to this menu.",
         hint_font,
         (206, 190, 169),
         (720, 1015),
@@ -145,6 +152,30 @@ def board_square_from_mouse(pos):
         return (row, col)
     return None
 
+def is_current_turn_piece(piece):
+    if board.turn == 0:
+        return piece < 0
+    return piece > 0
+
+
+def is_human_turn(mode):
+    if mode == "pvp":
+        return True
+    if mode == "pva":
+        return board.turn == 0
+    if mode == "avp":
+        return board.turn == 1
+    return False
+
+
+def is_ai_turn(mode):
+    if mode == "ava":
+        return True
+    if mode == "pva":
+        return board.turn == 1
+    if mode == "avp":
+        return board.turn == 0
+    return False
 
 def choose_square(click_list, square):
     if square is None:
@@ -152,12 +183,12 @@ def choose_square(click_list, square):
 
     piece = board.board[*square]
     if not click_list:
-        if piece != 0:
+        if piece != 0 and is_current_turn_piece(piece):
             click_list.append(square)
         return
 
     selected_piece = board.board[*click_list[0]]
-    if piece != 0 and selected_piece * piece > 0:
+    if piece != 0 and selected_piece * piece > 0 and is_current_turn_piece(piece):
         click_list.clear()
         click_list.append(square)
     else:
@@ -244,6 +275,26 @@ def draw_game_result(screen, result):
     elif result_type == "draw":
         call_draw(screen)
 
+def finish_human_turn(screen, pieces, clock, click_list):
+    if len(click_list) != 2:
+        return None, True
+
+    move_result = move(*click_list, screen)
+    click_list.clear()
+    if move_result == 1:
+        running = handle_pawn_promotion(screen, pieces, clock)
+        if running:
+            return current_game_result(), True
+        return None, False
+    if move_result in ("win", "draw"):
+        return current_game_result(), True
+    return None, True
+
+
+def finish_ai_turn():
+    # pg.display.flip()
+    make_engine_move(depth=4)
+    return current_game_result()
 
 def main():
     pg.init()
@@ -285,7 +336,7 @@ def main():
 
         if game_result is not None:
             draw_game_result(screen, game_result)
-
+        ai_moved = False
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
@@ -303,34 +354,19 @@ def main():
                 and game_result is None
             ):
                 choose_square(click_list, board_square_from_mouse(event.pos))
-
-        if game_mode == "pvp":
-            if len(click_list) == 2 and game_result is None:
-                move_result = move(*click_list, screen)
-                click_list.clear()
-                if move_result == 1:
-                    running = handle_pawn_promotion(screen, pieces, clock)
-                    if running:
-                        game_result = current_game_result()
-                elif move_result in ("win", "draw"):
-                    game_result = current_game_result()
-        elif game_mode == "pva":
-            if board.turn == 1:
-                make_engine_move()
-            else:
-                if len(click_list) == 2 and game_result is None:
-                    move_result = move(*click_list, screen)
-                    click_list.clear()
-                    if move_result == 1:
-                        running = handle_pawn_promotion(screen, pieces, clock)
-                        if running:
-                            game_result = current_game_result()
-                    elif move_result in ("win", "draw"):
-                        game_result = current_game_result()
-        elif game_mode == "ava":
-            make_engine_move()
-            pg.time.wait(500)
+        if game_result is None and is_ai_turn(game_mode):
+            pg.display.flip()
+            with ThreadPoolExecutor() as ppe:
+                result = ppe.submit(finish_ai_turn)
+                game_result = result.result()
+            ai_moved = True
+        elif game_result is None and is_human_turn(game_mode):
+            result, running = finish_human_turn(screen, pieces, clock, click_list)
+            if result is not None:
+                game_result = result
         pg.display.flip()
+        if ai_moved and game_mode == "ava" and game_result is None:
+            pg.time.delay(500)
         clock.tick(FPS)
 
     pg.quit()
