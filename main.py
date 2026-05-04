@@ -396,27 +396,32 @@ def main():
             draw_game_result(screen, game_result)
 
         # ------------------------------------------------------------------
-        # AI turn — non-blocking
+        # AI future — collect result (must run regardless of turn,
+        # because the background thread already flipped board.turn)
         # ------------------------------------------------------------------
         ai_moved = False
-        if game_result is None and is_ai_turn(game_mode):
-            if ai_future is None:
-                # First time we hit the AI's turn: kick off background search
-                ai_future = executor.submit(finish_ai_turn)
-
-            if ai_future.done():
-                # Engine finished — collect result and clear the future
+        if ai_future is not None and ai_future.done():
+            try:
                 game_result = ai_future.result()
-                ai_future = None
-                ai_moved = True
-            else:
-                # Still thinking — draw animated overlay so the user knows
-                draw_thinking_overlay(screen)
+            except Exception:
+                game_result = None
+            ai_future = None
+            ai_moved = True
+
+        # ------------------------------------------------------------------
+        # AI turn — kick off background search if needed
+        # ------------------------------------------------------------------
+        if ai_future is None and game_result is None and is_ai_turn(game_mode):
+            ai_future = executor.submit(finish_ai_turn)
+
+        # Show thinking overlay while AI is working
+        if ai_future is not None and not ai_future.done():
+            draw_thinking_overlay(screen)
 
         # ------------------------------------------------------------------
         # Human turn
         # ------------------------------------------------------------------
-        elif game_result is None and is_human_turn(game_mode):
+        if ai_future is None and game_result is None and is_human_turn(game_mode):
             result, running = finish_human_turn(screen, pieces, clock, click_list)
             if result is not None:
                 game_result = result

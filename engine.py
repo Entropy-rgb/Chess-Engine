@@ -20,10 +20,11 @@ def promo_piece_detector(the_flag=0, turn=0):
 
 
 def minimax_caller(
-    inp_board: Board = board, depth: int = 3, maximizing_player: int = 1
+    inp_board: Board = board, depth: int = 3, maximizing_player: int = 0
 ):
-    # maximizing_player=1 → Black (positive eval is good); starts at -INF, wants highest score
-    # maximizing_player=0 → White (negative eval is good); starts at +INF, wants lowest score
+    # evals() returns positive = White-good, negative = Black-good.
+    # Black (turn=1) wants the LOWEST score  → minimizer (maximizing_player=0)
+    # White (turn=0) wants the HIGHEST score → maximizer (maximizing_player=1)
     INF = 10_000_000_000
     best_eval = -INF if maximizing_player else INF
     best_eval_move = Move((8, 8), (8, 8), 10, -1, 10)
@@ -44,15 +45,15 @@ def minimax_caller(
         if done is None:
             continue
         curr_eval = minimax(cpy, depth - 1, maximizing_player ^ 1, alpha, beta)
-        if maximizing_player and curr_eval > best_eval:  # Black: pick highest
+        if maximizing_player and curr_eval > best_eval: 
             best_eval = curr_eval
             best_eval_move = pos
-        elif not maximizing_player and curr_eval < best_eval:  # White: pick lowest
+        elif not maximizing_player and curr_eval < best_eval:  
             best_eval = curr_eval
             best_eval_move = pos
-        if maximizing_player:  # Black is the maximizer → update alpha
+        if maximizing_player: 
             alpha = max(alpha, curr_eval)
-        else:  # White is the minimizer → update beta
+        else: 
             beta = min(beta, curr_eval)
         if beta <= alpha:
             break
@@ -89,9 +90,9 @@ def minimax(
             best_eval = curr_eval
         elif not maximizing_player and curr_eval < best_eval:  # White minimizes
             best_eval = curr_eval
-        if maximizing_player:  # update alpha for maximizer
+        if maximizing_player: 
             alpha = max(alpha, curr_eval)
-        else:  # update beta for minimizer
+        else: 
             beta = min(beta, curr_eval)
         if beta <= alpha:
             break
@@ -100,6 +101,16 @@ def minimax(
 
 def make_engine_move(inp_board: Board = board, depth: int = 3):
     move_to_play = minimax_caller(inp_board, depth)
+    # Guard: if engine found no valid move, flip the turn anyway to avoid
+    # an infinite loop where the AI is called over and over.
+    if move_to_play.initial == (8, 8) and move_to_play.final == (8, 8):
+        print("[engine] WARNING: no valid move found, passing turn")
+        inp_board.turn ^= 1
+        return -1
     promo_piece = promo_piece_detector(move_to_play.flag, inp_board.turn)
-    move(move_to_play.initial, move_to_play.final, None, inp_board, promo_piece)
+    result = move(move_to_play.initial, move_to_play.final, None, inp_board, promo_piece)
+    if result is None:
+        print(f"[engine] WARNING: chosen move {move_to_play.initial}->{move_to_play.final} was rejected")
+        inp_board.turn ^= 1
+        return -1
     return move_to_play.flag
