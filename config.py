@@ -1,19 +1,20 @@
-import numpy as np
-
 from enum import IntEnum
+from typing import Self
+
+import numpy as np
 
 DEPTH = 6
 
 
 class Board:
     def __init__(
-        self,
-        board,
-        turn,
-        en_passant: tuple,
-        castling_rights: list,
-        half_move_clock,
-        rook_moved,
+        self: Self,
+        board: np.typing.NDArray[np.int64],
+        turn: int | np.int64,
+        en_passant: tuple[int | np.int64, int | np.int64],
+        castling_rights: list[int | np.int64],
+        half_move_clock: int | np.int64,
+        rook_moved: list[int | np.int64],
     ):
         self.board = board
         self.turn = turn

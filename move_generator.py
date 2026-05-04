@@ -1,3 +1,7 @@
+from typing import Self
+
+import numpy as np
+
 from config import Board, pieces_enum
 from game import square_in_board
 
@@ -6,7 +10,12 @@ from game import square_in_board
 
 class move:
     def __init__(
-        self, initial: tuple, final: tuple, piece: int, flag: int, capture: int
+        self: Self,
+        initial: tuple[int | np.int64, int | np.int64],
+        final: tuple[int | np.int64, int | np.int64],
+        piece: int | np.int64,
+        flag: int | np.int64,
+        capture: int | np.int64,
     ):
         self.initial = initial
         self.final = final
@@ -15,7 +24,9 @@ class move:
         self.capture = capture
 
 
-def get_knight_moves(board, sq: tuple):
+def get_knight_moves(
+    board: np.typing.NDArray[np.int64], sq: tuple[int | np.int64, int | np.int64]
+) -> list[move]:
     knight_valid = [
         (2, 1),
         (1, 2),
@@ -31,19 +42,21 @@ def get_knight_moves(board, sq: tuple):
         final = (sq[0] + dis[0], sq[1] + dis[1])
         if square_in_board(final) and board[*final] * board[*sq] <= 0:
             knight_moves.append(
-                move(sq, final, board[*sq], 1 if board[*final] else 0, board[*final])
+                move(sq, final, board[sq], 1 if board[*final] else 0, board[final])
             )
     return knight_moves
 
 
-def get_king_moves(board, sq: tuple):
+def get_king_moves(
+    board: np.typing.NDArray[np.int64], sq: tuple[int | np.int64, int | np.int64]
+) -> list[move]:
     direction = [(1, 1), (-1, -1), (1, -1), (-1, 1), (1, 0), (0, 1), (-1, 0), (0, -1)]
     king_moves = []
     for dis in direction:
         final = (sq[0] + dis[0], sq[1] + dis[1])
         if square_in_board(final) and board[*sq] * board[*final] <= 0:
             king_moves.append(
-                move(sq, final, board[*sq], 1 if board[*final] else 0, board[*final])
+                move(sq, final, board[sq], 1 if board[*final] else 0, board[final])
             )
     if sq == (0, 4):
         king_moves.append(move(sq, (0, 2), pieces_enum.BLACK_KING, 4, 0))
@@ -55,25 +68,36 @@ def get_king_moves(board, sq: tuple):
 
 
 def get_directional_moves(
-    board,
-    sq: tuple,
-    direction=[(1, 1), (-1, -1), (1, -1), (-1, 1), (0, 1), (1, 0), (0, -1), (-1, 0)],
-):
+    board: np.typing.NDArray[np.int64],
+    sq: tuple[int | np.int64, int | np.int64],
+    direction: list[tuple[int | np.int64, int | np.int64]] = [
+        (1, 1),
+        (-1, -1),
+        (1, -1),
+        (-1, 1),
+        (0, 1),
+        (1, 0),
+        (0, -1),
+        (-1, 0),
+    ],
+) -> list[move]:
     moves = []
     for dir in direction:
         tar = (sq[0] + dir[0], sq[1] + dir[1])
         while square_in_board(tar):
-            if board[*tar] == pieces_enum.EMPTY:
-                moves.append(move(sq, tar, board[*sq], 0, 0))
+            if board[tar] == pieces_enum.EMPTY:
+                moves.append(move(sq, tar, board[sq], 0, 0))
                 tar = (tar[0] + dir[0], tar[1] + dir[1])
             elif board[*tar] != pieces_enum.EMPTY:
                 if board[*tar] * board[*sq] < 0:
-                    moves.append(move(sq, tar, board[*sq], 1, board[*tar]))
+                    moves.append(move(sq, tar, board[sq], 1, board[tar]))
                 break
     return moves
 
 
-def get_pawn_moves(board, sq: tuple):
+def get_pawn_moves(
+    board: Board, sq: tuple[int | np.int64, int | np.int64]
+) -> list[move]:
     # copy_orig = Board(board.board, board.turn, board.en_passant, board.castling_rights, board.half_move_clock , board.rook_moved)
     cpy_board = board.board
     playable_moves = []
@@ -276,7 +300,7 @@ def get_pawn_moves(board, sq: tuple):
     return playable_moves
 
 
-def move_generator(board: Board, turn=-1) -> list:
+def move_generator(board: Board, turn: int | np.int64 = -1) -> list:
     if turn == -1:
         turn = board.turn
     valid_moves = []

@@ -5,7 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "mypy>=1.20.2",
     "numpy>=2.4.4",
     "pygame-ce>=2.5.7",
     "rich>=15.0.0",
+    "setuptools>=82.0.1",
 ]

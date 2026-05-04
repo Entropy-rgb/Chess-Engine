@@ -4,14 +4,9 @@ import numpy as np
 import pygame as pg
 
 from config import board, piece_map, starting_board
-from game import (
-    call_draw,
-    call_win,
-    check_for_checkmate,
-    move,
-    promote_pawn,
-    stalemate_detect,
-)
+from engine import make_engine_move
+from game import (call_draw, call_win, check_for_checkmate, move, promote_pawn,
+                  stalemate_detect)
 
 SCREEN_SIZE = 1440
 TILE_SIZE = 180
@@ -309,16 +304,32 @@ def main():
             ):
                 choose_square(click_list, board_square_from_mouse(event.pos))
 
-        if len(click_list) == 2 and game_result is None:
-            move_result = move(*click_list, screen)
-            click_list.clear()
-            if move_result == 1:
-                running = handle_pawn_promotion(screen, pieces, clock)
-                if running:
+        if game_mode == "pvp":
+            if len(click_list) == 2 and game_result is None:
+                move_result = move(*click_list, screen)
+                click_list.clear()
+                if move_result == 1:
+                    running = handle_pawn_promotion(screen, pieces, clock)
+                    if running:
+                        game_result = current_game_result()
+                elif move_result in ("win", "draw"):
                     game_result = current_game_result()
-            elif move_result in ("win", "draw"):
-                game_result = current_game_result()
-
+        elif game_mode == "pva":
+            if board.turn == 1:
+                make_engine_move()
+            else:
+                if len(click_list) == 2 and game_result is None:
+                    move_result = move(*click_list, screen)
+                    click_list.clear()
+                    if move_result == 1:
+                        running = handle_pawn_promotion(screen, pieces, clock)
+                        if running:
+                            game_result = current_game_result()
+                    elif move_result in ("win", "draw"):
+                        game_result = current_game_result()
+        elif game_mode == "ava":
+            make_engine_move()
+            pg.time.wait(500)
         pg.display.flip()
         clock.tick(FPS)
 
