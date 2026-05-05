@@ -295,7 +295,7 @@ def finish_human_turn(screen, pieces, clock, click_list):
 
 
 def finish_ai_turn():
-    make_engine_move(depth=4)
+    make_engine_move(depth=5)
     return current_game_result()
 
 
@@ -415,7 +415,7 @@ def main():
             ai_future = executor.submit(finish_ai_turn)
 
         # Show thinking overlay while AI is working
-        if ai_future is not None and not ai_future.done():
+        if ai_future is not None and not ai_future.done() and game_mode!="ava":
             draw_thinking_overlay(screen)
 
         # ------------------------------------------------------------------
@@ -427,8 +427,6 @@ def main():
                 game_result = result
 
         pg.display.flip()
-        if ai_moved and game_mode == "ava" and game_result is None:
-            pg.time.delay(500)
         clock.tick(FPS)
 
     executor.shutdown(wait=False)

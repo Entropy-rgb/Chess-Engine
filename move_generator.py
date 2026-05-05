@@ -304,10 +304,10 @@ def get_pawn_moves(
 
 def perform_move_ordering(valid_moves, board):
     for cur_move in valid_moves:
-        if cur_move.flag and in_check(
-            cur_move.initial, cur_move.final, cur_move.flag, board
-        ):
-            cur_move.weight += 100
+        # if cur_move.flag and in_check(
+        #     cur_move.initial, cur_move.final, cur_move.flag, board
+        # ):
+        #     cur_move.weight += 100
         if (
             cur_move.flag == 1
             or cur_move.flag == 12

@@ -22,10 +22,9 @@ def promo_piece_detector(the_flag=0, turn=0):
 def minimax_caller(
     inp_board: Board = board, depth: int = 3, maximizing_player: int = 0
 ):
-    # evals() returns positive = White-good, negative = Black-good.
-    # Black (turn=1) wants the LOWEST score  → minimizer (maximizing_player=0)
-    # White (turn=0) wants the HIGHEST score → maximizer (maximizing_player=1)
     INF = 10_000_000_000
+    if (mate:=check_for_checkmate(inp_board)) is not None:
+        return (1-2*mate)*INF
     best_eval = -INF if maximizing_player else INF
     best_eval_move = Move((8, 8), (8, 8), 10, -1, 10)
     moves = move_generator(inp_board)
@@ -67,9 +66,11 @@ def minimax(
     alpha: int = -10_000_000_000,
     beta: int = 10_000_000_000,
 ):
+    INF = 10_000_000_000
+    if (mate:=check_for_checkmate(inp_board)) is not None:
+        return (1-2*mate)*INF
     if depth == 0:
         return evals(inp_board)
-    INF = 10_000_000_000
     best_eval = -INF if maximizing_player else INF
     moves = move_generator(inp_board)
     for pos in moves:
@@ -100,9 +101,7 @@ def minimax(
 
 
 def make_engine_move(inp_board: Board = board, depth: int = 3):
-    move_to_play = minimax_caller(inp_board, depth)
-    # Guard: if engine found no valid move, flip the turn anyway to avoid
-    # an infinite loop where the AI is called over and over.
+    move_to_play = minimax_caller(inp_board, depth, int(inp_board.turn^1))
     if move_to_play.initial == (8, 8) and move_to_play.final == (8, 8):
         print("[engine] WARNING: no valid move found, passing turn")
         inp_board.turn ^= 1

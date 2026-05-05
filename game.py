@@ -29,7 +29,7 @@ possible_directions = [
 def promote_pawn(
     pos: tuple, piece: int | np.int64, inp_board: Board = board
 ) -> int | np.int64:
-    inp_board.board[*pos] = piece
+    inp_board.board[pos[0]][pos[1]] = piece
     return 0
 
 
@@ -99,7 +99,7 @@ def in_check(
     board_copy = inp_board.board.copy()
     if valid:
         if final_position == inp_board.en_passant and (
-            board_copy[*initial_position] == 1 or board_copy[*initial_position] == -1
+            board_copy[initial_position[0]][initial_position[1]] == 1 or board_copy[initial_position[0]][initial_position[1]] == -1
         ):
             if inp_board.turn == 0:
                 board_copy[final_position[0] + 1][final_position[1]] = 0
@@ -410,19 +410,19 @@ def is_white_pawn_move(
         and final[0] == 4
         and initial[1] == final[1]
         and inp_board.board[5][initial[1]] == 0
-        and inp_board.board[*final] == 0
+        and inp_board.board[final[0]][final[1]] == 0
     ):
         return 2
     elif (
         initial[1] == final[1]
         and final[0] - initial[0] == -1
-        and inp_board.board[*final] == 0
+        and inp_board.board[final[0]][final[1]] == 0
     ):
         return 10
     elif (
         abs(final[1] - initial[1]) == 1
         and final[0] - initial[0] == -1
-        and inp_board.board[*final] != 0
+        and inp_board.board[final[0]][final[1]] != 0
     ):
         return 10
     elif en_passant(initial, final, inp_board):
@@ -439,19 +439,19 @@ def is_black_pawn_move(
         and final[0] == 3
         and initial[1] == final[1]
         and inp_board.board[2][initial[1]] == 0
-        and inp_board.board[*final] == 0
+        and inp_board.board[final[0]][final[1]] == 0
     ):
         return 2
     elif (
         initial[1] == final[1]
         and final[0] - initial[0] == 1
-        and inp_board.board[*final] == 0
+        and inp_board.board[final[0]][final[1]] == 0
     ):
         return 10
     elif (
         abs(final[1] - initial[1]) == 1
         and final[0] - initial[0] == 1
-        and inp_board.board[*final] != 0
+        and inp_board.board[final[0]][final[1]] != 0
     ):
         return 10
     elif en_passant(initial, final, inp_board):
@@ -463,35 +463,35 @@ def is_black_pawn_move(
 def is_valid_move(
     initial: tuple, final: tuple, inp_board: Board = board
 ) -> int | np.int64:
-    if inp_board.board[*final] * inp_board.board[*initial] > 0:
+    if inp_board.board[final[0]][final[1]] * inp_board.board[initial[0]][initial[1]] > 0:
         return 0
-    if inp_board.board[*initial] == pieces_enum.WHITE_PAWN:
+    if inp_board.board[initial[0]][initial[1]] == pieces_enum.WHITE_PAWN:
         return is_white_pawn_move(initial, final, inp_board)
-    elif inp_board.board[*initial] == pieces_enum.BLACK_PAWN:
+    elif inp_board.board[initial[0]][initial[1]] == pieces_enum.BLACK_PAWN:
         return is_black_pawn_move(initial, final, inp_board)
     elif (
-        inp_board.board[*initial] == pieces_enum.BLACK_KNIGHT
-        or inp_board.board[*initial] == pieces_enum.WHITE_KNIGHT
+        inp_board.board[initial[0]][initial[1]] == pieces_enum.BLACK_KNIGHT
+        or inp_board.board[initial[0]][initial[1]] == pieces_enum.WHITE_KNIGHT
     ):
         return is_knight_move(initial, final)
     elif (
-        inp_board.board[*initial] == pieces_enum.BLACK_BISHOP
-        or inp_board.board[*initial] == pieces_enum.WHITE_BISHOP
+        inp_board.board[initial[0]][initial[1]] == pieces_enum.BLACK_BISHOP
+        or inp_board.board[initial[0]][initial[1]] == pieces_enum.WHITE_BISHOP
     ):
         return is_bishop_move(initial, final, inp_board)
     elif (
-        inp_board.board[*initial] == pieces_enum.BLACK_ROOK
-        or inp_board.board[*initial] == pieces_enum.WHITE_ROOK
+        inp_board.board[initial[0]][initial[1]] == pieces_enum.BLACK_ROOK
+        or inp_board.board[initial[0]][initial[1]] == pieces_enum.WHITE_ROOK
     ):
         return is_rook_move(initial, final, inp_board)
     elif (
-        inp_board.board[*initial] == pieces_enum.BLACK_QUEEN
-        or inp_board.board[*initial] == pieces_enum.WHITE_QUEEN
+        inp_board.board[initial[0]][initial[1]] == pieces_enum.BLACK_QUEEN
+        or inp_board.board[initial[0]][initial[1]] == pieces_enum.WHITE_QUEEN
     ):
         return is_queen_move(initial, final, inp_board)
     elif (
-        inp_board.board[*initial] == pieces_enum.BLACK_KING
-        or inp_board.board[*initial] == pieces_enum.WHITE_KING
+        inp_board.board[initial[0]][initial[1]] == pieces_enum.BLACK_KING
+        or inp_board.board[initial[0]][initial[1]] == pieces_enum.WHITE_KING
     ):
         return is_king_move(initial, final, inp_board)
     else:
@@ -543,18 +543,18 @@ def move(
         return call_draw(screen)
     if initial_position == final_position:
         return None
-    if inp_board.board[*initial_position] < 0 and inp_board.turn == 1:
+    if inp_board.board[initial_position[0]][initial_position[1]] < 0 and inp_board.turn == 1:
         return None
-    elif inp_board.board[*initial_position] > 0 and inp_board.turn == 0:
+    elif inp_board.board[initial_position[0]][initial_position[1]] > 0 and inp_board.turn == 0:
         return None
     valid = is_valid_move(initial_position, final_position, inp_board)
     if valid:
         if (
             in_check(initial_position, final_position, valid, inp_board)
-            or abs(inp_board.board[*final_position]) == 6
+            or abs(inp_board.board[final_position[0]][final_position[1]]) == 6
         ):
             return None
-        moving_piece = inp_board.board[*initial_position]
+        moving_piece = inp_board.board[initial_position[0]][initial_position[1]]
         if valid == 7:  # a rook move , so we need to modify the castling rights
             if initial_position == (0, 0) and inp_board.rook_moved[0] == 0:
                 inp_board.rook_moved[0] = 1
