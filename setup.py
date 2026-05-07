@@ -8,12 +8,10 @@ ext = Extension(
     sources=[
         "engine.py",
         "main.py",
-        "move_generator.py",
         "evaluator.py",
         "pst.py",
         "perf.py",
         "config.py",
-        "game.py",
     ],
     include_dirs=[numpy.get_include()]
 )

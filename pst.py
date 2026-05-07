@@ -884,7 +884,7 @@ position_tables_end = [
 
 
 def find_pst(
-    piece: pieces_enum, end: int = 0
+    piece: int, end: int = 0
 ) -> np.ndarray | None:
     if end == 1:
         return position_tables_end[piece + 6]
