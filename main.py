@@ -521,7 +521,7 @@ def finish_human_turn(screen, pieces, clock, click_list, flipped=False):
 
 
 def finish_ai_turn(position):
-    return minimax_caller(position, depth=3)
+    return minimax_caller(position, depth=4)
 
 
 def save_game_pgn(mode, result=None):

@@ -1,6 +1,7 @@
 from evaluator import *
 from config import board
 import chess
+from tqdm import tqdm
 
 MOVE_VALUES = {
     chess.PAWN: 100,
@@ -60,7 +61,7 @@ def minimax_caller(
     best_eval_move = None
     alpha = -SEARCH_INF
     beta = SEARCH_INF
-    for pos in ordered_moves(inp_board):
+    for pos in tqdm(ordered_moves(inp_board)):
         inp_board.push(pos)
         curr_eval = minimax(inp_board, depth - 1, alpha, beta)
         if maximizing_player and curr_eval > best_eval: 
@@ -160,7 +161,7 @@ def quiescence(
     return best_eval
 
 
-def make_engine_move(inp_board: chess.Board = board, depth: int = 3):
+def make_engine_move(inp_board: chess.Board = board, depth: int = 5):
     move_to_play = minimax_caller(inp_board, depth)
     if move_to_play is None:
         print("[engine] WARNING: no valid move found, passing turn")
